@@ -45,6 +45,8 @@ instaviz = ">=0.6.0"
 ipdb = ">=0.13.9"
 ipython = ">=8.3.0"
 isort = ">=5.10.1"
+# See https://github.com/astropy/astropy/issues/11725
+Jinja2 = "<3.1"
 lxml = ">=4.8.0"
 memory-profiler = ">=0.60.0"
 merry = ">=0.3.0"
@@ -79,7 +81,8 @@ rstcheck = { extras = ["toml", "sphinx" ], version = ">=5.0.0" }
 seedir = ">=0.3.0"
 setuptools = "^65.3.0"
 setuptools-scm = "^7.0.5"
-Sphinx = ">=4.5.0"
+# See https://github.com/astropy/astropy/issues/11725
+Sphinx = "<4"
 sphinx-book-theme = "^0.3.3"
 sphinxcontrib-email = ">=0.3.5"
 sphinxcontrib-mermaid = "^0.7.1"

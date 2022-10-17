@@ -1,13 +1,11 @@
-name: Deploy Documentation to GitHub Pages
+name: Documentation
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -18,23 +16,20 @@ concurrency:
 jobs:
   deploy-docs:
     runs-on: ubuntu-latest
-    
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
-      
+
       - name: Install `python` ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-      
+          # See https://github.com/astropy/astropy/issues/11725
+          python-version: "3.9"
+
       - name: Print `python` Version
         id: full-python-version
         run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
@@ -62,24 +57,25 @@ jobs:
           [ "$(command -v timeout)" ] || function timeout() { perl -e 'alarm shift; exec @ARGV' "$@"; }
           # Using `timeout` is a safeguard against the Poetry command hanging for some reason.
           timeout 10s poetry run pip --version || rm -rf .venv
-          
+
       - name: Install Dependencies
         if: steps.python-cache.outputs.cache-hit != 'true'
         run: |
-          poetry run pip install --upgrade pip
-          poetry install --no-root
+          poetry run python -m pip install --upgrade pip
+          poetry install
           poetry run python -m pip install tox-gh-actions
           poetry run python -m pip install pytest-github-actions-annotate-failures
-      
+
       - name: Build Docs
-        uses: ammaraskar/sphinx-action@master
-        with:
-          build-command: "sphinx-build -b html source build"
-          docs-folder: "docs/"
-          
+        run: |
+          poetry run make -C docs html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
-        env:
-          personal_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: docs/build/html/
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"

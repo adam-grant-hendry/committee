@@ -106,7 +106,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+.venv/
 env/
 venv/
 ENV/
@@ -133,3 +133,7 @@ dmypy.json
 
 # Logs
 logs/
+
+
+# Poetry
+poetry.lock

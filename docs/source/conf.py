@@ -9,7 +9,8 @@ import importlib.resources as rsrc
 import os
 import sys
 from datetime import date
-from importlib import metadata
+
+import committee
 
 # -- Project information ----------------------------------------------------------------
 
@@ -17,7 +18,7 @@ project = 'Committee'
 copyright = f'{date.today().year}, Adam Hendry'  # pylint: disable=redefined-builtin
 author = 'Adam Hendry'
 root_package = 'committee'
-version = metadata.version(root_package)
+version = committee.__version__
 release = version
 
 master_doc = 'index'
@@ -56,8 +57,8 @@ extensions: list[str] = [
 # -- General configuration --------------------------------------------------------------
 
 # Paths are relative to ``source``
-templates_path = ['_templates']
-html_static_path = ['_static']
+# templates_path = ['_templates']
+# html_static_path = ['_static']
 
 source_suffix = '.md'
 master_doc = 'index'
