@@ -1,0 +1,161 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ALLOW_PLOTTING: true
+  SHELLOPTS: "errexit:pipefail"
+
+jobs:
+  test:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+
+    strategy:
+      matrix:
+        os: [Windows, macOS, Ubuntu]
+        python-version: ["3.8", "3.9", "3.10"]
+        include:
+          - os: Ubuntu
+            image: ubuntu-22.04
+          - os: Windows
+            image: windows-2022
+          - os: MacOS
+            image: macos-12
+          - python-version: "3.8"
+            tox-env: "py38"
+          - python-version: "3.9"
+            tox-env: "py39"
+          - python-version: "3.10"
+            tox-env: "py310"
+      fail-fast: false
+
+    defaults:
+      run:
+        shell: bash
+
+    name: Test - ${{ matrix.os }} / ${{ matrix.python-version }}
+    runs-on: ${{ matrix.image }}
+
+    steps:
+      - name: Check out the Repository
+        uses: actions/checkout@v3
+
+      - name: Update Ubuntu
+        if: matrix.os == 'Ubuntu'
+        run: |
+          sudo apt update -y
+
+      - name: Install `python` ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Print `python` Version
+        id: full-python-version
+        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+      - name: Install and Configure Poetry
+        uses: snok/install-poetry@v1.3.1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Print `poetry` Version
+        run: poetry --version
+
+      - name: Setup `python` Cache
+        uses: actions/cache@v3
+        id: python-cache
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Verify `python` Cache is Healthy
+        if: steps.python-cache.outputs.cache-hit == 'true'
+        run: |
+          # `timeout` is not available on macOS, so we define a custom function.
+          [ "$(command -v timeout)" ] || function timeout() { perl -e 'alarm shift; exec @ARGV' "$@"; }
+
+          # Using `timeout` is a safeguard against the Poetry command hanging for some reason.
+          timeout 10s poetry run pip --version || rm -rf .venv
+
+      - name: Setup `tox` Cache
+        uses: actions/cache@v3
+        id: tox-cache
+        with:
+          path: .tox
+          key: tox-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install GitHub Actions Dependencies
+        run: |
+          poetry run pip install --upgrade pip
+          poetry run python -m pip install tox-gh-actions
+          poetry run python -m pip install pytest-github-actions-annotate-failures
+
+      - name: Run tests
+        run: poetry run tox -e ${{ matrix.tox-env }}
+
+      - name: Upload Coverage Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage_data
+          path: tox-.coverage.*
+
+  coverage:
+    name: Coverage
+    needs: test
+
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the Repository
+        uses: actions/checkout@v3
+
+      - name: Install `python` ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox coverage
+          python -m pip install pytest-github-actions-annotate-failures
+
+      - name: Download Coverage Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage_data
+
+      - name: Combine Coverage Results
+        run: |
+          python -m tox -e coverage
+          export TOTAL=$(python -c "import json;print(json.load(open('logs/coverage/coverage.json'))['totals']['percent_covered_display'])")
+          echo "total_coverage=$TOTAL" >> $GITHUB_ENV
+          echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make Coverage Badge
+        uses: schneegans/dynamic-badges-action@v1.4.0
+        with:
+          # `GIST_TOKEN` is simply a personal access token with a scope of "gist".
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 16a8ead34f229df56d1028c5830a40d2
+          filename: coverage_badge.json
+          label: Coverage
+          message: ${{ env.total_coverage }}%
+          minColorRange: 50
+          maxColorRange: 90
+          valColorRange: ${{ env.total_coverage }}
