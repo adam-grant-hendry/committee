@@ -97,6 +97,8 @@ types-setuptools = ">=57.4.17"
 types-toml = ">=0.10.7"
 typing-extensions = ">=4.2.0"
 wheel = ">=0.37.1"
+typer = "^0.6.1"
+rich = "^12.6.0"
 
 [tool.bandit]
 skips = [
