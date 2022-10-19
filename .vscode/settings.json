@@ -9,11 +9,6 @@
         "editor.wordWrap": "bounded",
         "editor.wordWrapColumn": 90
     },
-    "[yaml]": {
-        "editor.formatOnSave": true,
-        "editor.wordWrap": "bounded",
-        "editor.wordWrapColumn": 90
-    },
     "[python]": {
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
@@ -22,8 +17,17 @@
         "editor.formatOnSave": true,
         "files.trimTrailingWhitespace": true
     },
+    "[restructuredtext]": {
+        "editor.wordWrap": "bounded",
+        "editor.wordWrapColumn": 90
+    },
+    "[yaml]": {
+        "editor.formatOnSave": true,
+        "editor.wordWrap": "bounded",
+        "editor.wordWrapColumn": 90
+    },
     "autoDocstring.docstringFormat": "numpy",
-    "editor.acceptSuggestionOnEnter": "strict",
+    "editor.acceptSuggestionOnEnter": "off",
     "editor.formatOnSave": false,
     "editor.rulers": [
         90
@@ -97,7 +101,15 @@
     ],
     "python.testing.pytestEnabled": true,
     "python.testing.pytestPath": "${workspaceFolder}/.venv/Scripts/pytest.exe",
+    "restructuredtext.linter.disabledLinters": [
+        "doc8",
+        "rst-lint"
+    ],
     "restructuredtext.linter.rstcheck.executablePath": "${workspaceFolder}/.venv/Scripts/rstcheck.exe",
+    "restructuredtext.linter.rstcheck.extraArgs": [
+        "--config",
+        "pyproject.toml"
+    ],
     "runOnSave.commands": [
         {
             "command": ".venv\\Scripts\\pyupgrade --py38-plus ${file}",

@@ -27,14 +27,14 @@ metadata = toml.load('pyproject.toml')['tool']['poetry']
 short_description = (  # pylint: disable=invalid-name
     'A pythonic interface to the Qt Graphics View Framework using qtpy.'
 )
-long_description = Path('README.md').read_text(encoding='utf-8')
+long_description = Path('README.rst').read_text(encoding='utf-8')
 
 kwargs = {
     'author': metadata['authors'],
     'classifiers': metadata['classifiers'],
     'description': short_description,
     'license': metadata['license'],
-    'long_description_content_type': 'text/markdown',
+    'long_description_content_type': 'text/x-rst',
     'long_description': long_description,
     'name': metadata['name'],
     'packages': find_packages(),

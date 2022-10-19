@@ -15,14 +15,11 @@ import committee
 # -- Project information ----------------------------------------------------------------
 
 project = 'Committee'
-copyright = f'{date.today().year}, Adam Hendry'  # pylint: disable=redefined-builtin
+copyright = f'2022-{date.today().year}, Adam Hendry'  # pylint: disable=redefined-builtin
 author = 'Adam Hendry'
 root_package = 'committee'
 version = committee.__version__
 release = version
-
-master_doc = 'index'
-language = 'en'
 
 # -- Path setup -------------------------------------------------------------------------
 
@@ -44,7 +41,6 @@ for pkg in packages:
 # -- Extensions -------------------------------------------------------------------------
 
 extensions: list[str] = [
-    'myst_parser',
     'numpydoc',
     'sphinx_book_theme',
     'sphinx.ext.autosectionlabel',
@@ -52,6 +48,7 @@ extensions: list[str] = [
     'sphinx.ext.napoleon',
     'sphinxcontrib.email',
     'sphinxcontrib.mermaid',
+    'sphinxemoji.sphinxemoji',
 ]
 
 # -- General configuration --------------------------------------------------------------
@@ -60,7 +57,7 @@ extensions: list[str] = [
 # templates_path = ['_templates']
 # html_static_path = ['_static']
 
-source_suffix = '.md'
+source_suffix = '.rst'
 master_doc = 'index'
 
 # List of files relative to ``source`` to ignore when looking for source files
